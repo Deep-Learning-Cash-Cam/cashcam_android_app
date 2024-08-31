@@ -91,10 +91,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       MaterialPageRoute(builder: (context) => RegistrationScreen()),
     );
 
-    if (result == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration successful. Please log in.')),
-      );
+    if (result != null && result['registrationSuccess'] == true) {
+      // Registration was successful, but message already shown
+      // You can update UI here if needed, e.g., highlight login button
     }
   }
 
@@ -111,11 +110,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         _userName = result['userName'];
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Logged in successfully')),
-      );
+      if (result['loginSuccess'] != true) {
+        // Only show this message if it wasn't already shown in LoginScreen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logged in successfully')),
+        );
+      }
     }
-  }
+  }  // Add this closing brace
 
   void _logout() {
     setState(() {

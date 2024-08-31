@@ -35,7 +35,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Registration successful. Please log in.')),
           );
-          Navigator.pop(context); // Return to welcome screen
+          Navigator.pop(context, {'registrationSuccess': true});  // Return this instead of just true
         } else {
           // Registration failed
           final errorData = jsonDecode(response.body);

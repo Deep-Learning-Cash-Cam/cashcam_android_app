@@ -41,12 +41,16 @@ class _LoginScreenState extends State<LoginScreen> {
           final refreshToken = responseBody['refresh_token'];
           final tokenType = responseBody['token_type'];
 
-          // TODO: Store the access token securely (e.g., using flutter_secure_storage)
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Login successful')),
           );
-          Navigator.pop(context, {'accessToken': accessToken, 'tokenType': tokenType});
+
+          // Pass login success information back to WelcomeScreen
+          Navigator.pop(context, {
+            'accessToken': accessToken,
+            'tokenType': tokenType,
+            'loginSuccess': true,  // Add this flag
+          });
         } else {
           // Login failed
           final errorData = jsonDecode(response.body);
@@ -61,8 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
             errorMessage += 'Please check your credentials.';
           }
 
-          // Print the entire server response for debugging purposes
-          print('Server response: ${response.body}');
 
           setState(() {
             _emailError = errorData['email']?[0];
