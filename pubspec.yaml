@@ -1,0 +1,72 @@
+name: cashcam_multy_user
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  camera: ^0.10.5+9
+  http: ^1.2.1
+  path_provider: ^2.1.2
+  path: ^1.8.3
+  image_picker: ^1.0.7
+  google_sign_in: ^6.2.1
+  flutter_image_compress: ^2.1.0
+  permission_handler: ^10.0.0
+  intl: ^0.18.0
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/logo.jpeg
+    - assets/default_user.png
+    - assets/EUR_B_5.png
+    - assets/EUR_B_10.png
+    - assets/EUR_B_20.png
+    - assets/EUR_B_50.png
+    - assets/EUR_B_100.png
+    - assets/EUR_B_200.png
+    - assets/EUR_B_500.png
+    - assets/EUR_C_1.png
+    - assets/EUR_C_2.png
+    - assets/EUR_C_5.png
+    - assets/EUR_C_10.png
+    - assets/EUR_C_20.png
+    - assets/EUR_C_50.png
+    - assets/EUR_C_100.png
+    - assets/EUR_C_200.png
+    - assets/NIS_B_20.png
+    - assets/NIS_B_50.png
+    - assets/NIS_B_100.png
+    - assets/NIS_B_200.png
+    - assets/NIS_C_10.png
+    - assets/NIS_C_50.png
+    - assets/NIS_C_100.png
+    - assets/NIS_C_200.png
+    - assets/NIS_C_500.png
+    - assets/NIS_C_1000.png
+    - assets/USD_B_1.png
+    - assets/USD_B_2.png
+    - assets/USD_B_5.png
+    - assets/USD_B_10.png
+    - assets/USD_B_20.png
+    - assets/USD_B_50.png
+    - assets/USD_B_100.png
+    - assets/USD_C_1.png
+    - assets/USD_C_5.png
+    - assets/USD_C_10.png
+    - assets/USD_C_25.png
+    - assets/USD_C_50.png
+    - assets/USD_C_100.png
