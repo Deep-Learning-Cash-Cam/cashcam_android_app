@@ -124,7 +124,7 @@ class _CameraScreenState extends State<CameraScreen> {
         final responseBody = jsonDecode(response.body);
         final annotatedImageBase64 = responseBody['image'];
         final currencies = responseBody['currencies'] as Map<String, dynamic>;
-        final imageId = responseBody['image_id'];
+        final imageId = responseBody['image_id'] as String?; // Make imageId nullable
 
         if (mounted) {
           Navigator.push(
@@ -135,7 +135,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 annotatedImageBase64: annotatedImageBase64,
                 currencies: currencies,
                 selectedCurrency: widget.selectedCurrency,
-                imageId: imageId,
+                imageId: imageId, // Pass imageId as nullable
                 accessToken: widget.accessToken,
               ),
             ),

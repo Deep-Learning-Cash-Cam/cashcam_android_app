@@ -48,7 +48,7 @@ class StatisticsScreen extends StatefulWidget {
   final String annotatedImageBase64;
   final Map<String, dynamic> currencies;
   final String selectedCurrency;
-  final String imageId;
+  final String? imageId;  // Make imageId nullable
   final String accessToken;
 
   StatisticsScreen({
@@ -56,7 +56,7 @@ class StatisticsScreen extends StatefulWidget {
     required this.annotatedImageBase64,
     required this.currencies,
     required this.selectedCurrency,
-    required this.imageId,
+    this.imageId,  // Make imageId optional
     required this.accessToken,
   });
 
@@ -68,6 +68,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   bool _isReported = false;
 
   Future<void> _reportIncorrectRecognition(BuildContext context) async {
+    if (widget.imageId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reporting is not available for guest users.')),
+      );
+      return;
+    }
+
     try {
       final response = await http.post(
         Uri.parse(
@@ -114,29 +121,30 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               Stack(
                 children: [
                   Image.memory(base64Decode(widget.annotatedImageBase64)),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: ElevatedButton(
-                      onPressed: _isReported
-                          ? null
-                          : () => _reportIncorrectRecognition(context),
-                      child: Text(_isReported ? 'Thanks' : 'Report'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        _isReported ? Colors.green : Colors.red,
-                        foregroundColor: Colors.white,
-                        padding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                  if (widget.imageId != null)  // Only show report button for logged-in users
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: ElevatedButton(
+                        onPressed: _isReported
+                            ? null
+                            : () => _reportIncorrectRecognition(context),
+                        child: Text(_isReported ? 'Thanks' : 'Report'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                          _isReported ? Colors.green : Colors.red,
+                          foregroundColor: Colors.white,
+                          padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          textStyle: TextStyle(fontSize: 12),
+                          disabledBackgroundColor: Colors.green,
+                          disabledForegroundColor: Colors.white,
                         ),
-                        textStyle: TextStyle(fontSize: 12),
-                        disabledBackgroundColor: Colors.green,
-                        disabledForegroundColor: Colors.white,
                       ),
                     ),
-                  ),
                 ],
               ),
               SizedBox(height: 16),
