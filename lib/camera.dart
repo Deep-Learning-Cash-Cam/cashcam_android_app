@@ -185,6 +185,7 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     double buttonSize = screenWidth * 0.3;
 
     return Scaffold(
@@ -198,7 +199,18 @@ class _CameraScreenState extends State<CameraScreen> {
             future: _initializeControllerFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
-                return CameraPreview(_controller);
+                return Container(
+                  width: screenWidth,
+                  height: screenHeight,
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: screenWidth,
+                      height: screenWidth * _controller.value.aspectRatio,
+                      child: CameraPreview(_controller),
+                    ),
+                  ),
+                );
               } else {
                 return Center(
                   child: CircularProgressIndicator(
