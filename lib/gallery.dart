@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'statistics.dart'; // Make sure currencyDetails is imported
 
 class GalleryScreen extends StatefulWidget {
   final String accessToken;
@@ -26,8 +27,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Future<void> _fetchImages() async {
     try {
       final response = await http.get(
-        Uri.parse(
-            'http://ec2-54-197-155-194.compute-1.amazonaws.com:80/api/get_images'),
+        Uri.parse('http://ec2-54-197-155-194.compute-1.amazonaws.com:80/api/get_images'),
         headers: {
           'Authorization': 'Bearer ${widget.accessToken}',
           'Content-Type': 'application/json',
@@ -36,19 +36,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
       if (response.statusCode == 200) {
         final decodedResponse = jsonDecode(response.body);
-        if (decodedResponse['images'] == null) {
-          // If 'images' is null, treat it as an empty list
-          setState(() {
-            _images = [];
-            _isLoading = false;
-          });
-        } else if (decodedResponse['images'] is List) {
-          setState(() {
-            _images = decodedResponse['images'];
-            _isLoading = false;
-          });
+
+        // Check if the 'images' key exists and if it's a List
+        if (decodedResponse.containsKey('images')) {
+          final images = decodedResponse['images'];
+
+          if (images is List) {
+            setState(() {
+              _images = images;
+              _isLoading = false;
+            });
+          } else if (images == null || images.isEmpty) {
+            setState(() {
+              _errorMessage = 'No images available';
+              _isLoading = false;
+            });
+          } else {
+            throw FormatException('Unexpected data format: images is not a List or is null');
+          }
         } else {
-          throw FormatException('Unexpected data format: images is not a List');
+          throw FormatException('Unexpected data format: images key does not exist');
         }
       } else {
         throw Exception('Failed to load images: ${response.statusCode}');
@@ -58,7 +65,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _errorMessage = 'Error: $e';
         _isLoading = false;
       });
-      print('Detailed error: $e');  // Print detailed error for debugging
     }
   }
 
@@ -82,38 +88,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
       )
           : _errorMessage != null
           ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'An error occurred:',
-              style: TextStyle(color: Colors.red, fontSize: 18),
-            ),
-            SizedBox(height: 8),
-            Text(
-              _errorMessage!,
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _isLoading = true;
-                  _errorMessage = null;
-                });
-                _fetchImages();
-              },
-              child: Text('Retry'),
-            ),
-          ],
-        ),
-      )
-          : _images.isEmpty
-          ? Center(
         child: Text(
-          'No history available',
-          style: TextStyle(fontSize: 18, color: Colors.black54),
+          _errorMessage!,
+          style: TextStyle(color: Colors.red, fontSize: 18),
         ),
       )
           : GridView.builder(
@@ -135,6 +112,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   builder: (context) => FullScreenImage(
                     base64Image: image['base64_string'],
                     dateCaptured: _formatDate(image['upload_date']),
+                    currencies: image['currencies'] ?? {}, // Handle null currencies
                   ),
                 ),
               );
@@ -182,8 +160,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
 class FullScreenImage extends StatelessWidget {
   final String base64Image;
   final String dateCaptured;
+  final Map<String, dynamic> currencies;
 
-  FullScreenImage({required this.base64Image, required this.dateCaptured});
+  FullScreenImage({
+    required this.base64Image,
+    required this.dateCaptured,
+    required this.currencies,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -192,22 +175,52 @@ class FullScreenImage extends StatelessWidget {
         title: Text('Image Details'),
         backgroundColor: const Color.fromARGB(255, 31, 133, 31),
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: Image.memory(
-                base64Decode(base64Image),
-                fit: BoxFit.contain,
-              ),
+            Image.memory(
+              base64Decode(base64Image),
+              fit: BoxFit.contain,
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
                 'Captured on: $dateCaptured',
                 style: TextStyle(fontSize: 18, color: Colors.black),
+                textAlign: TextAlign.center,
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Detected Currencies:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: currencies.length,
+              itemBuilder: (context, index) {
+                String key = currencies.keys.elementAt(index);
+                int amount = currencies[key];
+                return Card(
+                  child: ListTile(
+                    leading: Image.asset(
+                      currencyDetails[key]?['image'] ?? 'assets/default_currency.png',
+                      width: 50,
+                      height: 50,
+                    ),
+                    title: Text(
+                      currencyDetails[key]?['name'] ?? key,
+                    ),
+                    subtitle: Text(
+                      'Amount: $amount',
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
