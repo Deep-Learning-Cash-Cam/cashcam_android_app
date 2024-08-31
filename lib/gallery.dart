@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart'; // Import for date formatting
-import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class GalleryScreen extends StatefulWidget {
   final String accessToken;
@@ -37,21 +35,30 @@ class _GalleryScreenState extends State<GalleryScreen> {
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          _images = jsonDecode(response.body)['images'];
-          _isLoading = false;
-        });
+        final decodedResponse = jsonDecode(response.body);
+        if (decodedResponse['images'] == null) {
+          // If 'images' is null, treat it as an empty list
+          setState(() {
+            _images = [];
+            _isLoading = false;
+          });
+        } else if (decodedResponse['images'] is List) {
+          setState(() {
+            _images = decodedResponse['images'];
+            _isLoading = false;
+          });
+        } else {
+          throw FormatException('Unexpected data format: images is not a List');
+        }
       } else {
-        setState(() {
-          _errorMessage = 'Failed to load images';
-          _isLoading = false;
-        });
+        throw Exception('Failed to load images: ${response.statusCode}');
       }
     } catch (e) {
       setState(() {
         _errorMessage = 'Error: $e';
         _isLoading = false;
       });
+      print('Detailed error: $e');  // Print detailed error for debugging
     }
   }
 
@@ -75,18 +82,47 @@ class _GalleryScreenState extends State<GalleryScreen> {
       )
           : _errorMessage != null
           ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'An error occurred:',
+              style: TextStyle(color: Colors.red, fontSize: 18),
+            ),
+            SizedBox(height: 8),
+            Text(
+              _errorMessage!,
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isLoading = true;
+                  _errorMessage = null;
+                });
+                _fetchImages();
+              },
+              child: Text('Retry'),
+            ),
+          ],
+        ),
+      )
+          : _images.isEmpty
+          ? Center(
         child: Text(
-          _errorMessage!,
-          style: TextStyle(color: Colors.red, fontSize: 18),
+          'No history available',
+          style: TextStyle(fontSize: 18, color: Colors.black54),
         ),
       )
           : GridView.builder(
         padding: const EdgeInsets.all(8.0),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // Two images per row
+          crossAxisCount: 2,
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: 1.0, // Aspect ratio to make images square
+          childAspectRatio: 1.0,
         ),
         itemCount: _images.length,
         itemBuilder: (BuildContext context, int index) {
@@ -117,7 +153,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         top: Radius.circular(15.0),
                       ),
                       child: AspectRatio(
-                        aspectRatio: 1.0, // Make image square
+                        aspectRatio: 1.0,
                         child: Image.memory(
                           base64Decode(image['base64_string']),
                           fit: BoxFit.cover,

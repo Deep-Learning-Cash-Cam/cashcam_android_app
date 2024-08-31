@@ -6,8 +6,7 @@ import 'package:camera/camera.dart';
 import 'registration_screen.dart';
 import 'login_screen.dart';
 import 'camera.dart';
-import 'package:permission_handler/permission_handler.dart';
-
+import 'gallery.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final CameraDescription camera;
@@ -129,43 +128,35 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
-  Future<bool> _requestPermissions() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.camera,
-      Permission.storage,
-    ].request();
-
-    if (statuses[Permission.camera]!.isGranted &&
-        statuses[Permission.storage]!.isGranted) {
-      return true;
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Permissions not granted')),
-      );
-      return false;
-    }
-  }
-
-  void _continueToApp() async {
-    if (await _requestPermissions()) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CameraScreen(
-            camera: widget.camera,
-            selectedCurrency: _selectedCurrency,
-            accessToken: _accessToken ?? '',
-            tokenType: _tokenType ?? '',
-          ),
+  void _continueToApp() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CameraScreen(
+          camera: widget.camera,
+          selectedCurrency: _selectedCurrency,
+          accessToken: _accessToken ?? '',
+          tokenType: _tokenType ?? '',
         ),
-      );
-    }
+      ),
+    );
   }
 
   void _openGallery() {
-    // Placeholder function for gallery functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Gallery functionality not implemented yet')),
+    if (_accessToken == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please log in to view your image history')),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GalleryScreen(
+          accessToken: _accessToken!,
+        ),
+      ),
     );
   }
 
@@ -186,11 +177,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Commented out Image.asset as the asset might not be available
-                  // Image.asset(
-                  //   'assets/logo.jpeg',
-                  //   height: 100,
-                  // ),
+                  Image.asset(
+                    'assets/logo.jpeg',
+                    height: 100,
+                  ),
                   SizedBox(height: 20),
                   Text(
                     "Snap and detect the value of your currency!",
@@ -267,38 +257,42 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ],
                     )
                   else
-                    ElevatedButton(
-                      onPressed: _logout,
-                      child: Text('Logout'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                        textStyle: TextStyle(fontSize: 18),
-                      ),
+                    Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: _logout,
+                          child: Text('Logout'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                            textStyle: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _isConnected ? _openGallery : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Gallery'),
+                              SizedBox(width: 18),
+                              Icon(Icons.photo_library),
+                            ],
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 31, 133, 31),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                            textStyle: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ],
                     ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _isConnected ? _continueToApp : null,
                     child: Text(_accessToken == null ? 'Continue as Guest' : 'Open Camera'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromARGB(255, 31, 133, 31),
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      textStyle: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _isConnected ? _openGallery : null,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('Gallery'),
-                        SizedBox(width: 18),
-                        Icon(Icons.photo_library),
-                      ],
-                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color.fromARGB(255, 31, 133, 31),
                       foregroundColor: Colors.white,
