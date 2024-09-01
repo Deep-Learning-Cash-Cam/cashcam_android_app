@@ -165,7 +165,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       currencyDetails[entry.key]?['name'] ?? entry.key,
                     ),
                     subtitle: Text(
-                      '${entry.value['quantity']} items, ${entry.value['quantity'] * entry.value['return_currency_value']} ${widget.selectedCurrency}',
+                      '${entry.value['quantity']} items, ${(entry.value['quantity'] * entry.value['return_currency_value']).toStringAsFixed(2)} ${widget.selectedCurrency}',
                     ),
                   ),
                 ),
@@ -177,7 +177,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               Card(
                 child: ListTile(
                   title: Text('Total'),
-                  subtitle: Text('$totalAmount ${widget.selectedCurrency}'),
+                  subtitle: Text('${totalAmount.toStringAsFixed(2)} ${widget.selectedCurrency}'),
                 ),
               ),
             ],

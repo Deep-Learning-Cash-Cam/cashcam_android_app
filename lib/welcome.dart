@@ -117,7 +117,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         );
       }
     }
-  }  // Add this closing brace
+  }
 
   void _logout() {
     setState(() {
@@ -170,6 +170,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         appBar: AppBar(
           title: Text('CashCam'),
           backgroundColor: const Color.fromARGB(255, 0, 128, 0),
+          actions: [
+            if (_accessToken != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ElevatedButton(
+                  onPressed: _logout,
+                  child: Text('Logout'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    textStyle: TextStyle(fontSize: 14),
+                  ),
+                ),
+              ),
+          ],
         ),
         body: Center(
           child: SingleChildScrollView(
@@ -184,28 +200,30 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     height: 100,
                   ),
                   SizedBox(height: 20),
+                  if (_userName != null)
+                    Text(
+                      'Welcome, $_userName!',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 31, 133, 31)),
+                    ),
+                  SizedBox(height: 20),
                   Text(
                     "Snap and detect the value of your currency!",
                     style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.black54),
+                      fontSize: 20,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.black54,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 20),
                   Text(
                     _connectivityMessage,
                     style: TextStyle(
-                        fontSize: 18,
-                        color: _isConnected ? Colors.green : Colors.red),
+                      fontSize: 18,
+                      color: _isConnected ? Colors.green : Colors.red,
+                    ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 20),
-                  if (_userName != null)
-                    Text(
-                      'Welcome, $_userName!',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
                   SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -256,29 +274,48 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             textStyle: TextStyle(fontSize: 18),
                           ),
                         ),
+                        SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: _isConnected ? _continueToApp : null,
+                          child: Text('Continue as Guest'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 31, 133, 31),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                            textStyle: TextStyle(fontSize: 18),
+                          ),
+                        ),
                       ],
                     )
                   else
                     Column(
                       children: [
                         ElevatedButton(
-                          onPressed: _logout,
-                          child: Text('Logout'),
+                          onPressed: _isConnected ? _continueToApp : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Capture'),
+                              SizedBox(width: 10),
+                              Icon(Icons.camera_alt),
+                            ],
+                          ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor: Color.fromARGB(255, 31, 133, 31),
                             foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                             textStyle: TextStyle(fontSize: 18),
                           ),
                         ),
-                        SizedBox(height: 20),
+                        SizedBox(height: 10),
                         ElevatedButton(
                           onPressed: _isConnected ? _openGallery : null,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text('Gallery'),
-                              SizedBox(width: 18),
+                              SizedBox(width: 10),
                               Icon(Icons.photo_library),
                             ],
                           ),
@@ -291,17 +328,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                       ],
                     ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _isConnected ? _continueToApp : null,
-                    child: Text(_accessToken == null ? 'Continue as Guest' : 'Open Camera'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromARGB(255, 31, 133, 31),
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      textStyle: TextStyle(fontSize: 18),
-                    ),
-                  ),
                 ],
               ),
             ),

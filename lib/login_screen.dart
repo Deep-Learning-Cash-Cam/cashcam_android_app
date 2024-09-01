@@ -41,16 +41,33 @@ class _LoginScreenState extends State<LoginScreen> {
           final refreshToken = responseBody['refresh_token'];
           final tokenType = responseBody['token_type'];
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login successful')),
+          // Fetch user details
+          final userResponse = await http.get(
+            Uri.parse('http://ec2-54-197-155-194.compute-1.amazonaws.com/auth/users/me'),
+            headers: {
+              'Authorization': 'Bearer $accessToken',
+              'Content-Type': 'application/json',
+            },
           );
 
-          // Pass login success information back to WelcomeScreen
-          Navigator.pop(context, {
-            'accessToken': accessToken,
-            'tokenType': tokenType,
-            'loginSuccess': true,  // Add this flag
-          });
+          if (userResponse.statusCode == 200) {
+            final userData = jsonDecode(userResponse.body);
+            final userName = userData['name']; // Adjust this based on your API response structure
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Login successful')),
+            );
+
+            // Pass login success information back to WelcomeScreen
+            Navigator.pop(context, {
+              'accessToken': accessToken,
+              'tokenType': tokenType,
+              'userName': userName, // Add the user's name
+              'loginSuccess': true,
+            });
+          } else {
+            throw Exception('Failed to fetch user details');
+          }
         } else {
           // Login failed
           final errorData = jsonDecode(response.body);
@@ -65,7 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
             errorMessage += 'Please check your credentials.';
           }
 
-
           setState(() {
             _emailError = errorData['email']?[0];
             _passwordError = errorData['password']?[0];
@@ -77,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: Network error. Please try again.')),
+          SnackBar(content: Text('Login failed: ${e.toString()}')),
         );
       } finally {
         setState(() {
@@ -86,7 +102,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
