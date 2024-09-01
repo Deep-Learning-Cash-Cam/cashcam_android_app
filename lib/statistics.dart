@@ -48,7 +48,7 @@ class StatisticsScreen extends StatefulWidget {
   final String annotatedImageBase64;
   final Map<String, dynamic> currencies;
   final String selectedCurrency;
-  final String? imageId;  // Make imageId nullable
+  final String? imageId;
   final String accessToken;
 
   StatisticsScreen({
@@ -56,7 +56,7 @@ class StatisticsScreen extends StatefulWidget {
     required this.annotatedImageBase64,
     required this.currencies,
     required this.selectedCurrency,
-    this.imageId,  // Make imageId optional
+    this.imageId,
     required this.accessToken,
   });
 
@@ -111,6 +111,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       appBar: AppBar(
         title: Text('Recognition Results'),
         backgroundColor: const Color.fromARGB(255, 31, 133, 31),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.home),
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -121,7 +129,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               Stack(
                 children: [
                   Image.memory(base64Decode(widget.annotatedImageBase64)),
-                  if (widget.imageId != null)  // Only show report button for logged-in users
+                  if (widget.imageId != null)
                     Positioned(
                       top: 8,
                       right: 8,

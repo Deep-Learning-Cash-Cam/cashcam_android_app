@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'statistics.dart'; // Make sure currencyDetails is imported
+import 'statistics.dart';
 
 class GalleryScreen extends StatefulWidget {
   final String accessToken;
@@ -37,7 +37,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
       if (response.statusCode == 200) {
         final decodedResponse = jsonDecode(response.body);
 
-        // Check if the 'images' key exists and if it's a List
         if (decodedResponse.containsKey('images')) {
           final images = decodedResponse['images'];
 
@@ -79,6 +78,14 @@ class _GalleryScreenState extends State<GalleryScreen> {
       appBar: AppBar(
         title: Text('History Gallery'),
         backgroundColor: const Color.fromARGB(255, 31, 133, 31),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.home),
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? Center(
@@ -112,7 +119,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   builder: (context) => FullScreenImage(
                     base64Image: image['base64_string'],
                     dateCaptured: _formatDate(image['upload_date']),
-                    currencies: image['currencies'] ?? {}, // Handle null currencies
+                    currencies: image['currencies'] ?? {},
                   ),
                 ),
               );
@@ -174,6 +181,14 @@ class FullScreenImage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Image Details'),
         backgroundColor: const Color.fromARGB(255, 31, 133, 31),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.home),
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(

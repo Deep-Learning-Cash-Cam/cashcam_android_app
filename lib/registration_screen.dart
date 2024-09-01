@@ -35,7 +35,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Registration successful. Please log in.')),
           );
-          Navigator.pop(context, {'registrationSuccess': true});  // Return this instead of just true
+          Navigator.pop(context, {'registrationSuccess': true});
         } else {
           // Registration failed
           final errorData = jsonDecode(response.body);
@@ -59,8 +59,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       appBar: AppBar(
         title: Text('Register'),
         backgroundColor: const Color.fromARGB(255, 0, 128, 0),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.home),
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
+        ],
       ),
-      body: SingleChildScrollView(  // Wrap with SingleChildScrollView
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(
@@ -95,7 +103,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    // Simple email validation
                     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                       return 'Please enter a valid email address';
                     }

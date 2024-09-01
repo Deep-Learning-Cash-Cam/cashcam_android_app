@@ -109,6 +109,9 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: Text('Login'),
         backgroundColor: const Color.fromARGB(255, 0, 128, 0),
+        actions: [
+          HomeButton(), // Add the HomeButton here
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -170,6 +173,20 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class HomeButton extends StatelessWidget {
+  const HomeButton({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.home),
+      onPressed: () {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      },
     );
   }
 }
