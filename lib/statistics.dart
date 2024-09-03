@@ -76,6 +76,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     _imageSize = _getImageSize();
   }
 
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
+  }
+
   Future<Size> _getImageSize() async {
     final Uint8List bytes = base64Decode(widget.annotatedImageBase64);
     final decodedImage = await decodeImageFromList(bytes);
@@ -136,38 +142,36 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FutureBuilder<Size>(
-                future: _imageSize,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                    final size = snapshot.data!;
-                    final screenWidth = MediaQuery.of(context).size.width - 32; // Accounting for padding
-                    final screenHeight = MediaQuery.of(context).size.height * 0.6; // Increased from 0.4 to 0.6
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FutureBuilder<Size>(
+              future: _imageSize,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                  final size = snapshot.data!;
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final screenHeight = MediaQuery.of(context).size.height * 0.7;
 
-                    double width, height;
-                    if (size.width / size.height > screenWidth / screenHeight) {
-                      // If image is wider than the screen aspect ratio
-                      width = screenWidth;
-                      height = screenWidth * (size.height / size.width);
-                    } else {
-                      // If image is taller than the screen aspect ratio
-                      height = screenHeight;
-                      width = screenHeight * (size.width / size.height);
-                    }
+                  double width, height;
+                  if (size.width / size.height > screenWidth / screenHeight) {
+                    width = screenWidth;
+                    height = screenWidth * (size.height / size.width);
+                  } else {
+                    height = screenHeight;
+                    width = screenHeight * (size.width / size.height);
+                  }
 
-                    return Stack(
-                      children: [
-                        Container(
-                          constraints: BoxConstraints(
-                            maxHeight: screenHeight,
-                            maxWidth: screenWidth,
-                          ),
-                          child: Center(
+                  return Stack(
+                    children: [
+                      Container(
+                        width: screenWidth,
+                        height: screenHeight,
+                        child: Center(
+                          child: InteractiveViewer(
+                            transformationController: _transformationController,
+                            minScale: 1.0,
+                            maxScale: 4.0,
                             child: Image.memory(
                               base64Decode(widget.annotatedImageBase64),
                               width: width,
@@ -176,71 +180,78 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                             ),
                           ),
                         ),
-                        if (widget.imageId != null)
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: ElevatedButton(
-                              onPressed: _isReported
-                                  ? null
-                                  : () => _reportIncorrectRecognition(context),
-                              child: Text(_isReported ? 'Thanks' : 'Report'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                _isReported ? Colors.green : Colors.red,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                textStyle: TextStyle(fontSize: 12),
-                                disabledBackgroundColor: Colors.green,
-                                disabledForegroundColor: Colors.white,
+                      ),
+                      if (widget.imageId != null)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: ElevatedButton(
+                            onPressed: _isReported
+                                ? null
+                                : () => _reportIncorrectRecognition(context),
+                            child: Text(_isReported ? 'Thanks' : 'Report'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                              _isReported ? Colors.green : Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
                               ),
+                              textStyle: TextStyle(fontSize: 12),
+                              disabledBackgroundColor: Colors.green,
+                              disabledForegroundColor: Colors.white,
                             ),
                           ),
-                      ],
-                    );
-                  } else {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Detected Currencies:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              for (var entry in widget.currencies.entries)
-                Card(
-                  child: ListTile(
-                    leading: Image.asset(
-                      currencyDetails[entry.key]?['image'] ??
-                          'assets/default_currency.png',
-                      width: 50,
-                      height: 50,
+                        ),
+                    ],
+                  );
+                } else {
+                  return Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Detected Currencies:',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  for (var entry in widget.currencies.entries)
+                    Card(
+                      child: ListTile(
+                        leading: Image.asset(
+                          currencyDetails[entry.key]?['image'] ??
+                              'assets/default_currency.png',
+                          width: 50,
+                          height: 50,
+                        ),
+                        title: Text(
+                          currencyDetails[entry.key]?['name'] ?? entry.key,
+                        ),
+                        subtitle: Text(
+                          '${entry.value['quantity']} items, ${(entry.value['quantity'] * entry.value['return_currency_value']).toStringAsFixed(2)} ${widget.selectedCurrency}',
+                        ),
+                      ),
                     ),
-                    title: Text(
-                      currencyDetails[entry.key]?['name'] ?? entry.key,
-                    ),
-                    subtitle: Text(
-                      '${entry.value['quantity']} items, ${(entry.value['quantity'] * entry.value['return_currency_value']).toStringAsFixed(2)} ${widget.selectedCurrency}',
+                  SizedBox(height: 16),
+                  Text(
+                    'Total Amount:',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  Card(
+                    child: ListTile(
+                      title: Text('Total'),
+                      subtitle: Text('${totalAmount.toStringAsFixed(2)} ${widget.selectedCurrency}'),
                     ),
                   ),
-                ),
-              SizedBox(height: 16),
-              Text(
-                'Total Amount:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ],
               ),
-              Card(
-                child: ListTile(
-                  title: Text('Total'),
-                  subtitle: Text('${totalAmount.toStringAsFixed(2)} ${widget.selectedCurrency}'),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
