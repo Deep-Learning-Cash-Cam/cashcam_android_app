@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -66,6 +67,20 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
   bool _isReported = false;
+  late Future<Size> _imageSize;
+  final TransformationController _transformationController = TransformationController();
+
+  @override
+  void initState() {
+    super.initState();
+    _imageSize = _getImageSize();
+  }
+
+  Future<Size> _getImageSize() async {
+    final Uint8List bytes = base64Decode(widget.annotatedImageBase64);
+    final decodedImage = await decodeImageFromList(bytes);
+    return Size(decodedImage.width.toDouble(), decodedImage.height.toDouble());
+  }
 
   Future<void> _reportIncorrectRecognition(BuildContext context) async {
     if (widget.imageId == null) {
@@ -126,34 +141,70 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Stack(
-                children: [
-                  Image.memory(base64Decode(widget.annotatedImageBase64)),
-                  if (widget.imageId != null)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: ElevatedButton(
-                        onPressed: _isReported
-                            ? null
-                            : () => _reportIncorrectRecognition(context),
-                        child: Text(_isReported ? 'Thanks' : 'Report'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                          _isReported ? Colors.green : Colors.red,
-                          foregroundColor: Colors.white,
-                          padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
+              FutureBuilder<Size>(
+                future: _imageSize,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                    final size = snapshot.data!;
+                    final screenWidth = MediaQuery.of(context).size.width - 32; // Accounting for padding
+                    final screenHeight = MediaQuery.of(context).size.height * 0.6; // Increased from 0.4 to 0.6
+
+                    double width, height;
+                    if (size.width / size.height > screenWidth / screenHeight) {
+                      // If image is wider than the screen aspect ratio
+                      width = screenWidth;
+                      height = screenWidth * (size.height / size.width);
+                    } else {
+                      // If image is taller than the screen aspect ratio
+                      height = screenHeight;
+                      width = screenHeight * (size.width / size.height);
+                    }
+
+                    return Stack(
+                      children: [
+                        Container(
+                          constraints: BoxConstraints(
+                            maxHeight: screenHeight,
+                            maxWidth: screenWidth,
                           ),
-                          textStyle: TextStyle(fontSize: 12),
-                          disabledBackgroundColor: Colors.green,
-                          disabledForegroundColor: Colors.white,
+                          child: Center(
+                            child: Image.memory(
+                              base64Decode(widget.annotatedImageBase64),
+                              width: width,
+                              height: height,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                ],
+                        if (widget.imageId != null)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: ElevatedButton(
+                              onPressed: _isReported
+                                  ? null
+                                  : () => _reportIncorrectRecognition(context),
+                              child: Text(_isReported ? 'Thanks' : 'Report'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                _isReported ? Colors.green : Colors.red,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                textStyle: TextStyle(fontSize: 12),
+                                disabledBackgroundColor: Colors.green,
+                                disabledForegroundColor: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  } else {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                },
               ),
               SizedBox(height: 16),
               Text(

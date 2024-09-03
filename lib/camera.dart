@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'statistics.dart';
@@ -31,6 +32,7 @@ class _CameraScreenState extends State<CameraScreen> {
   late Future<void> _initializeControllerFuture;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
+  FlashMode _flashMode = FlashMode.off;
 
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _CameraScreenState extends State<CameraScreen> {
     _initializeControllerFuture = _controller.initialize();
     try {
       await _initializeControllerFuture;
+      await _controller.setFlashMode(FlashMode.off);
       setState(() {});
     } catch (e) {
       print('Error initializing camera: $e');
@@ -62,7 +65,7 @@ class _CameraScreenState extends State<CameraScreen> {
     try {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
-        File compressedFile = await compressAndGetFile(File(pickedFile.path), pickedFile.path);
+        File compressedFile = await compressAndGetFile(pickedFile.path);
         await _sendImageToServer(context, compressedFile.path);
       }
     } catch (e) {
@@ -73,18 +76,22 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  Future<File> compressAndGetFile(File file, String targetPath) async {
+  Future<File> compressAndGetFile(String imagePath) async {
     try {
+      final dir = await getTemporaryDirectory();
+      final targetPath = path.join(dir.path, 'compressed_${DateTime.now().millisecondsSinceEpoch}.jpg');
+
       var result = await FlutterImageCompress.compressAndGetFile(
-        file.absolute.path,
+        imagePath,
         targetPath,
         quality: 90,
         rotate: 0,
       );
-      return File(result!.path);
+
+      return result != null ? File(result.path) : File(imagePath);
     } catch (e) {
       print('Error compressing image: $e');
-      return file;  // Return original file if compression fails
+      return File(imagePath);  // Return original file if compression fails
     }
   }
 
@@ -124,7 +131,7 @@ class _CameraScreenState extends State<CameraScreen> {
         final responseBody = jsonDecode(response.body);
         final annotatedImageBase64 = responseBody['image'];
         final currencies = responseBody['currencies'] as Map<String, dynamic>;
-        final imageId = responseBody['image_id'] as String?; // Make imageId nullable
+        final imageId = responseBody['image_id'] as String?;
 
         if (mounted) {
           Navigator.push(
@@ -135,7 +142,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 annotatedImageBase64: annotatedImageBase64,
                 currencies: currencies,
                 selectedCurrency: widget.selectedCurrency,
-                imageId: imageId, // Pass imageId as nullable
+                imageId: imageId,
                 accessToken: widget.accessToken,
               ),
             ),
@@ -148,7 +155,7 @@ class _CameraScreenState extends State<CameraScreen> {
       print('Error sending image to server: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Failed to send image, please try again')),
         );
       }
     } finally {
@@ -163,17 +170,24 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
+  Future<void> _toggleFlash() async {
+    if (_flashMode == FlashMode.off) {
+      _flashMode = FlashMode.auto;
+    } else if (_flashMode == FlashMode.auto) {
+      _flashMode = FlashMode.always;
+    } else {
+      _flashMode = FlashMode.off;
+    }
+    await _controller.setFlashMode(_flashMode);
+    setState(() {});
+  }
+
   Future<void> _takePicture(BuildContext context) async {
     try {
       await _initializeControllerFuture;
       final image = await _controller.takePicture();
-      File compressedFile = await compressAndGetFile(File(image.path), image.path);
-      final path = join(
-        (await getTemporaryDirectory()).path,
-        '${DateTime.now()}.png',
-      );
-      await compressedFile.copy(path);
-      await _sendImageToServer(context, path);
+      File compressedFile = await compressAndGetFile(image.path);
+      await _sendImageToServer(context, compressedFile.path);
     } catch (e) {
       print('Error taking picture: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -270,8 +284,32 @@ class _CameraScreenState extends State<CameraScreen> {
               ),
             ),
           ),
+          Positioned(
+            right: 16.0,
+            bottom: 16.0,
+            child: FloatingActionButton(
+              child: Icon(_getFlashIcon()),
+              onPressed: _isLoading ? null : _toggleFlash,
+              heroTag: 'flash',
+              foregroundColor: Color.fromARGB(255, 29, 30, 29),
+              backgroundColor: const Color.fromARGB(255, 217, 245, 198),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  IconData _getFlashIcon() {
+    switch (_flashMode) {
+      case FlashMode.off:
+        return Icons.flash_off;
+      case FlashMode.auto:
+        return Icons.flash_auto;
+      case FlashMode.always:
+        return Icons.flash_on;
+      default:
+        return Icons.flash_off;
+    }
   }
 }

@@ -68,7 +68,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   }
 
   String _formatDate(String dateTimeString) {
-    final DateTime dateTime = DateTime.parse(dateTimeString);
+    final DateTime dateTime = DateTime.parse(dateTimeString).toLocal();
     return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
   }
 
