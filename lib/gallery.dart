@@ -194,14 +194,15 @@ class FullScreenImage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: MediaQuery.of(context).size.height * 0.6, // Adjust this value as needed
+            AspectRatio(
+              aspectRatio: 1, // Assuming a square image, adjust if needed
               child: InteractiveViewer(
                 minScale: 1.0,
                 maxScale: 4.0,
                 child: Image.memory(
                   base64Decode(base64Image),
-                  fit: BoxFit.contain,
+                  fit: BoxFit.cover,
+                  width: MediaQuery.of(context).size.width,
                 ),
               ),
             ),

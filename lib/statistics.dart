@@ -153,31 +153,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   final screenWidth = MediaQuery.of(context).size.width;
                   final screenHeight = MediaQuery.of(context).size.height * 0.7;
 
-                  double width, height;
-                  if (size.width / size.height > screenWidth / screenHeight) {
-                    width = screenWidth;
-                    height = screenWidth * (size.height / size.width);
-                  } else {
-                    height = screenHeight;
-                    width = screenHeight * (size.width / size.height);
-                  }
+                  // Calculate height based on the aspect ratio of the image
+                  double height = screenWidth * (size.height / size.width);
 
                   return Stack(
                     children: [
                       Container(
                         width: screenWidth,
-                        height: screenHeight,
-                        child: Center(
-                          child: InteractiveViewer(
-                            transformationController: _transformationController,
-                            minScale: 1.0,
-                            maxScale: 4.0,
-                            child: Image.memory(
-                              base64Decode(widget.annotatedImageBase64),
-                              width: width,
-                              height: height,
-                              fit: BoxFit.contain,
-                            ),
+                        height: height,
+                        child: InteractiveViewer(
+                          transformationController: _transformationController,
+                          minScale: 1.0,
+                          maxScale: 4.0,
+                          child: Image.memory(
+                            base64Decode(widget.annotatedImageBase64),
+                            width: screenWidth,
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
