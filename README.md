@@ -24,7 +24,7 @@ Businesses can use CashCam to keep track of daily revenues. By saving pictures o
 - **Frontend**: Developed using Flutter for a smooth user experience.
 - **Platform**: Currently available for iPhone and Android support.
 - **Exchange Rates**: Real-time and daily updated exchange rates are fetched to provide accurate currency conversions.
-- **Google Registration**: Users can easily register through their Google account.
+- **Registration and use**: Users can easily register or use the app as a guest.
 - **Server Communication**: The app communicates with a server for sending images to the detection model and receiving classification results, as well as interacting with a database for user data.
 
 ## Server & Database
@@ -36,6 +36,9 @@ Businesses can use CashCam to keep track of daily revenues. By saving pictures o
 ## Expandability
 
 The app is currently set up to handle USD, EURO, and ILS, but can easily be expanded to support more currencies. By adding new datasets and updating the model, the app can detect and classify additional currencies from around the world, making it a versatile tool for more users.
+
+## App Demo
+https://youtu.be/PMSvcVptImM
 
 ## Authors
 
