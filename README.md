@@ -38,14 +38,24 @@ Businesses can use CashCam to keep track of daily revenues. By saving pictures o
 The app is currently set up to handle USD, EURO, and ILS, but can easily be expanded to support more currencies. By adding new datasets and updating the model, the app can detect and classify additional currencies from around the world, making it a versatile tool for more users.
 
 ## App Demo
+
 https://youtu.be/PMSvcVptImM
+
+## Related Repositories
+**ios app version**
+
+https://github.com/Deep-Learning-Cash-Cam/cashcam_ios_app
+
+**backend**
+
+https://github.com/Deep-Learning-Cash-Cam/cashcam_backend
 
 ## Authors
 
 This project was developed by:
 
+- [RoDanielle](https://github.com/RoDanielle)
 - [UriB1](https://github.com/UriBeeri)
 - [ItayE97](https://github.com/ItayE97)
-- [RoDanielle](https://github.com/RoDanielle)
 - [YuvalHajbi](https://github.com/YuvalHajbi)
 - [Ronmegini](https://github.com/ronmegini)
