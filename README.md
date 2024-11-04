@@ -29,7 +29,7 @@ Businesses can use CashCam to keep track of daily revenues. By saving pictures o
 
 ## Server & Database
 
-- **Database**: SQLite Db. Stores user information and image history. Local cache is also used for logs and fetched data.
+- **Database**: SQLite DB Stores user information and image history. Local cache is also used for logs and fetched data.
 - **Detection Model**: The server runs the detection and classification model.
 - **Communication**: The app seamlessly communicates with the server for image processing and data storage.
 
